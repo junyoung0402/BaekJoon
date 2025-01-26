@@ -1,0 +1,34 @@
+name: Automatically Update README.md
+
+on:
+  push:
+    branches: [ "main" ]
+permissions:
+  contents: write
+
+jobs:
+  create-challenge-issue:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: 'pip'
+      - run: pip install requests
+      - name: Update Problems and README
+        env:
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          OWNER: "junyoung0402"
+          REPO: "BaekJoon"
+        run: python3 ./scripts/manage_problems.py
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "junyoung0402"
+          git config --global user.email "leeyoung040231@gmail.com"
+          git add README.md problems.json
+          git diff-index --quiet HEAD || git commit -m "Update README with problem information"
+          git push
